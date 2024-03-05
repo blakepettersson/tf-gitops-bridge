@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - clusters:
+        selector:
+          # The "environment" label key comes from the cluster secret. Any cluster which has an environment key matching
+          # dev, staging or prod will get kube-prometheus-stack installed.
+          matchExpressions:
+            - key: environment
+              operator: In
+              values:
+                - dev
+                - staging
+                - prod
+        values:
+          # This is a map which will map a version for each environment. This currently sets the same chart and values
+          # revision for all envs, but can easily be differentiated if need be.
+          chartRevision: '{{ index (dict "dev" "55.1.0" "staging" "55.1.0" "prod" "55.1.0")  (index .metadata.labels "environment")}}'
+          valuesRevision: '{{ index (dict "dev" "main" "staging" "main" "prod" "main")  (index .metadata.labels "environment")}}'
+  template:
+    metadata:
+      name: '{{.name}}-kube-prometheus-stack'
+    spec:
+      project: default
+      sources:
+        - chart: kube-prometheus-stack
+          repoURL: https://prometheus-community.github.io/helm-charts
+          targetRevision: '{{.values.chartRevision}}'
+          helm:
+            releaseName: kube-prometheus-stack
+            # The values file from the https://github.com/blakepettersson/argocd-kube-prometheus-stack is used here.
+            # This could be extended to have environment-specific files, e.g $values/values-{{ (index .metadata.labels "environment") }}.yaml
+            # which would go after the first values file.
+            valueFiles:
+              - $values/values.yaml
+        - repoURL: https://github.com/blakepettersson/argocd-kube-prometheus-stack
+          targetRevision: '{{.values.valuesRevision}}'
+          ref: values
+      destination:
+        namespace: monitoring
+        server: '{{.server}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

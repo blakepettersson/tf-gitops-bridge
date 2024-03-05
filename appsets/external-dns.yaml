@@ -1,0 +1,59 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: external-dns
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    # Labels are not required to filter out clusters with an ApplicationSet. A post-selector can be used to filter out
+    # individual clusters, as shown below.
+    - clusters: {}
+      selector:
+        matchExpressions:
+          - key: server
+            operator: In
+            values:
+              - https://kubernetes.default.svc
+  template:
+    metadata:
+      name: "{{.name}}-public-external-dns"
+    spec:
+      destination:
+        namespace: external-dns
+        server: '{{.server}}'
+      project: 'default'
+      sources:
+      - helm:
+          releaseName: external-dns
+          # Any value from the cluster secret can be passed inline into the Helm chart.
+          values: |
+            sources: ["service", "ingress"]
+            provider: aws
+            policy: sync
+            registry: txt
+            triggerLoopOnEvent: true
+            resources:
+              limits:
+                memory: 200Mi
+              requests:
+                cpu: 50m
+                memory: 200Mi            
+            serviceAccount:
+              annotations:
+                eks.amazonaws.com/role-arn: arn:aws:iam::{{ index .metadata.labels "aws-account-id" }}:role/{{ index .metadata.annotations "external-dns-iam-role-name" }}
+            txtOwnerId: {{.name}}
+            domainFilters: [{{ index .metadata.annotations "cluster-dns-zone"}}]
+            aws:
+              zoneType: public
+              zoneTags:
+                - role-name={{ index .metadata.annotations "external-dns-iam-role-name" }}
+        repoURL: registry-1.docker.io/bitnamicharts/external-dns
+        targetRevision: '6.35.0'
+        chart:
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
