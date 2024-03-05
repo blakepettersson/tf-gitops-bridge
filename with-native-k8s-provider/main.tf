@@ -15,7 +15,7 @@ resource "kubernetes_secret" "example" {
   metadata {
     name = "kubernetes.local.svc-cluster"
     # With labels, clusters can be filtered using a label selector in ApplicationSets.
-    labels = coalesce({ "argocd.argoproj.io/secret-type" = "cluster" }, local.my-labels)
+    labels = merge({ "argocd.argoproj.io/secret-type" = "cluster" }, local.my-labels)
     # Annotations can also be used to insert data from a cluster into an ApplicationSet. If there is no need for an
     # attribute to be filtered in an ApplicationSet, the recommendation is to use annotations instead of labels.
     annotations = local.my-annotations
