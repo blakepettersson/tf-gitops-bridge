@@ -36,6 +36,9 @@ the overridden values. The values are more or less the defaults provided by the 
 not installing Alertmanager and any rules associated with it, and it also installs the standard Argo CD dashboard. It
 also overrides the Grafana and Prometheus services to use `NodePort` instead of `ClusterIP`.
 
+## TODOs
+* Add a version using the [Argo CD Provider](https://github.com/oboukili/) instead of the native K8s provider  
+
 ## Usage
 
 ```shell
