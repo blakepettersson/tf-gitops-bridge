@@ -1,6 +1,7 @@
 # tf-gitops-bridge
 
-This repository demonstrates how to apply the Gitops Bridge pattern, as popularised by [Nicholas Morey](https://github.com/morey-tech).
+This repository demonstrates how to apply the Gitops Bridge pattern, as popularised by [Nicholas Morey](https://github.com/morey-tech)
+and [Carlos Santana](https://github.com/csantanapr). A more extensive variant of said pattern is available here
 
 This repository contains an app-of-apps directory (or in reality an app-of-appsets) which configures 
 [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack), which
