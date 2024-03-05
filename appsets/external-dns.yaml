@@ -48,9 +48,9 @@ spec:
               zoneType: public
               zoneTags:
                 - role-name={{ index .metadata.annotations "external-dns-iam-role-name" }}
-        repoURL: registry-1.docker.io/bitnamicharts/external-dns
+        repoURL: registry-1.docker.io/bitnamicharts
         targetRevision: '6.35.0'
-        chart:
+        chart: external-dns
       syncPolicy:
         automated:
           prune: true
